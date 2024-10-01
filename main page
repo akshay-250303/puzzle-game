@@ -1,0 +1,130 @@
+"use client";
+import React,{useState,useRef,useEffect} from 'react';
+import styles from '../puzzle.module.css';
+
+import Image from 'next/image';
+import AA from '../Black___White_Minimalist_Business_Logo-removebg-preview.png';
+
+const PuzzleGame: React.FC = () => {
+    const [tiles, setTiles] = useState<number[]>([]);
+    const [emptyTileIndex, setEmptyTileIndex] = useState<number | null>(null);
+    const [time,setTime] = useState(0);
+    const intervalRef = useRef(null);
+    const[count,setCount]=useState(0);
+    const startTimer = () => {
+      if (intervalRef.current !== null) return;
+      intervalRef.current = setInterval(() => {
+        setTime((prevTime) => prevTime + 1);
+      }, 1000);
+    };
+    const pauseTimer = () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    const resetTimer = () => {
+   pauseTimer();
+      setTime(0);
+    };
+    
+    const handleReset = () => {
+      initGame();
+      resetTimer();
+    };
+    useEffect(() => {
+      initGame();
+    }, []);
+  
+    const initGame = () => {
+      let initialTiles = [...Array(8).keys()].map(n => n + 1).concat(null); 
+      initialTiles = shuffleTiles(initialTiles);
+      setTiles(initialTiles);
+      setEmptyTileIndex(initialTiles.indexOf(null));
+      setCount(0);
+     
+     
+    };
+
+    const shuffleTiles = (array: (number | null)[]) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    };
+  
+    const canMoveTile = (index: number) => {
+      if (emptyTileIndex === null) return false;
+      const rowDiff = Math.abs(Math.floor(index / 3) - Math.floor(emptyTileIndex / 3));
+      const colDiff = Math.abs(index % 3 - emptyTileIndex % 3);
+      return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    };
+  
+    const moveTile = (index: number) => {
+      if (canMoveTile(index)) {
+        const newTiles = [...tiles];
+        [newTiles[index], newTiles[emptyTileIndex!]] = [newTiles[emptyTileIndex!], newTiles[index]];
+        setTiles(newTiles);
+        setEmptyTileIndex(index);
+      }
+    };
+  
+    const checkPuzzleSolved = () => {
+      const correctTiles = [...Array(8).keys()].map(n => n + 1).concat(null);
+      return JSON.stringify(tiles) === JSON.stringify(correctTiles);
+    };
+if  (checkPuzzleSolved()) {
+  pauseTimer();
+ 
+  };
+
+
+
+
+return(
+    <div style={{backgroundColor:'white'}}>
+
+       <div className='row'>
+        <div className='col-lg-4'></div>
+        <div className='col-lg-4' style={{marginTop:'50px'}}><center><br />
+        <div className="card shadow-lg p-3 mb-5 rounded "   style={{width:'80%',backgroundColor:'bisque' }} id='aad'>
+  <div className="card-header">
+  <Image src={AA} height={150} width={180} style={{padding:"10"}}/></div><hr />
+<div className="card-body">
+    <div className="box shadow border" style={{padding:'20px',backgroundColor:'bisque',borderColor:'#800000'}}><br />
+    <div className={styles.puzzleContainer}>
+      <div className={styles.grid}>
+        {tiles.map((tile, index) => (
+          <div
+            key={index}
+            className={tile === null ? styles.emptyTile : styles.tile}
+            onClick={() => {moveTile(index),startTimer(),setCount(count+1)}}
+          >
+            {tile}
+          </div>
+        ))}
+      </div>
+      {checkPuzzleSolved() && <p className={styles.solvedMessage}>Puzzle Solved! in {time} secs with {count} Moves.</p>}
+      
+      <button onClick={handleReset}  className="btn btn-outline-light" style={{padding:'10px',marginTop:'10px',color:"white",backgroundColor:"#001B3B"}}>New Game</button>
+
+    </div>
+</div>
+  </div><hr />
+  <div className='card-footer' >
+    <div className='row'><div className='col-lg-6 ' style={{color:'#001B3B'}}>Time: {time} secs</div><div className='col-lg-6 ' style={{color:'#001B3B'}}>Moves:{count}</div></div>
+    <br /><span style={{opacity:'10%'}}><a href="https://www.linkedin.com/in/akshay-a-130403313/">&copy;</a></span></div>
+</div>
+</center> </div>
+        <div className='col-lg-4'></div>
+
+       </div><br /><br />
+    </div>
+);
+}
+export default PuzzleGame;
+ 
+
+
+
